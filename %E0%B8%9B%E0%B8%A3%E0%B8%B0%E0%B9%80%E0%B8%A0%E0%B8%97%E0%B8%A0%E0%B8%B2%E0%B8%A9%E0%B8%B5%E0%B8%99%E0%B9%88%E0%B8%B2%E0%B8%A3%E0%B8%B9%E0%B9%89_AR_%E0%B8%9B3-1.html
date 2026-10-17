@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ประเภทภาษีน่ารู้ AR | ป.3</title>
+<style>
+/* ใช้ TH Sarabun New ตามที่กำหนด หากเครื่องไม่มีฟอนต์นี้จะใช้ฟอนต์สำรอง */
+:root{--navy:#20145e;--purple:#6c4ce8;--pink:#ff78b7;--mint:#35d5ad;--gold:#ffd65a}
+*{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:"TH Sarabun New","TH SarabunPSK",Tahoma,sans-serif;font-size:25px;color:#21174e;background:linear-gradient(135deg,#23145f,#6336a7 55%,#182b67);overflow-x:hidden}
+button,input{font:inherit;font-family:inherit;font-size:25px}button{cursor:pointer;border:0}
+#camera{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:.18;transform:scaleX(-1);z-index:-3}
+.bg-grid{position:fixed;inset:0;z-index:-2;opacity:.15;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:36px 36px}
+.glow{position:fixed;width:340px;height:340px;border-radius:50%;filter:blur(70px);opacity:.3;z-index:-1;background:#f85fbd;top:-100px;right:-80px}
+.glow.two{background:#31e6cb;top:auto;right:auto;bottom:-150px;left:-100px}
+main{width:min(960px,100%);margin:auto;padding:18px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;justify-content:space-between;align-items:center;color:#fff;gap:10px;font-size:25px}
+.pill{background:#100b35a8;border:1px solid #ffffff40;border-radius:99px;padding:8px 13px;display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:#ffc64c;display:inline-block}
+.screen{display:none;flex:1;align-items:center;justify-content:center;padding:25px 0}.screen.active{display:flex}
+.panel{background:#fffffff2;backdrop-filter:blur(12px);width:min(600px,100%);border:4px solid #ffe277;border-radius:30px;padding:clamp(22px,5vw,38px);box-shadow:0 25px 70px #08032680;text-align:center}
+.emoji-hero{font-size:76px;line-height:1.25;filter:drop-shadow(0 8px 0 #e2d6ff);animation:bob 2.3s infinite ease-in-out}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+.tag{display:inline-block;background:#fff0a8;color:#6b4700;border-radius:99px;padding:7px 14px;font-weight:700;font-size:25px;margin:8px 0}
+h1{font-size:clamp(2rem,7vw,3.1rem);line-height:1.15;margin:7px 0;color:#39228b}h2{margin:8px 0 12px;font-size:1.6rem}p{line-height:1.65}
+.muted{color:#625b7c}.field{text-align:left;margin:20px 0}.field label{font-weight:700;display:block;margin-bottom:7px}
+input{width:100%;padding:13px 15px;border:2px solid #d5caff;border-radius:14px;background:#fff;color:#21174e;outline:none}input:focus{border-color:#7658ed;box-shadow:0 0 0 3px #7658ed24}
+.btn{padding:13px 20px;border-radius:16px;font-weight:800;transition:.15s;box-shadow:0 5px 0 #4d28a4;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #4d28a4}
+.primary{color:#fff;background:linear-gradient(100deg,#26cfa6,#19a9b4);box-shadow:0 5px 0 #137f83}.purple{background:linear-gradient(100deg,#7955ee,#a64ee8);color:#fff}.full{width:100%}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.rule{border-radius:18px;padding:15px;background:#e8fff7;border:2px solid #7ce8c9}.rule.indirect{background:#f2eaff;border-color:#d3b8ff}.rule .big{font-size:40px}
+.game-wrap{width:min(760px,100%);color:#fff}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.hud .pill{font-weight:700}.timer{font-size:1.15rem;color:#fff;background:#ef4774;border:2px solid #ffb7cb}
+.timer.warning{animation:pulse .5s infinite alternate}@keyframes pulse{to{transform:scale(1.05);background:#c9274f}}
+.question-card{background:#fffffff4;color:#26185e;border:4px solid #d2c5ff;border-radius:28px;padding:clamp(20px,5vw,32px);text-align:center;box-shadow:0 20px 55px #08032660}
+.q-label{background:#ece7ff;color:#5c40bd;border-radius:99px;display:inline-block;padding:6px 13px;font-size:25px;font-weight:700}
+#q-text{font-size:clamp(1.25rem,4.4vw,1.9rem);line-height:1.45;margin:18px 0}
+.hint{background:#f0edff;border-radius:14px;padding:10px;font-size:25px;color:#4b3c86}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.answer{min-height:142px;border-radius:24px;color:#fff;padding:18px 10px;font-weight:800;position:relative;overflow:hidden;border:3px solid #ffffff8c;box-shadow:0 8px 0 #100b3855;transition:transform .15s}
+.answer:hover{transform:translateY(-3px)}.answer:active{transform:scale(.98)}
+.answer.direct{background:linear-gradient(145deg,#20cfa2,#087c7a)}.answer.indirect{background:linear-gradient(145deg,#9c61f2,#5132bc)}
+.answer .hand{font-size:40px;display:block}.answer .sub{display:block;font-size:25px;font-weight:500;opacity:.9}
+.feedback{display:none;margin-top:14px;border-radius:18px;padding:15px;text-align:left;background:#eafff6;border:2px solid #7be3c0;color:#145d4a}
+.feedback.show{display:block}.feedback.bad{background:#fff0f3;border-color:#ff9db5;color:#a32047}
+.progress-track{height:9px;border-radius:99px;background:#ffffff35;overflow:hidden;margin:10px 0 18px}.progress-fill{height:100%;background:linear-gradient(90deg,#3ee6bd,#ffe16a);width:100%;transition:width .2s linear}
+.score-box{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.score-stat{background:#f0edff;border-radius:18px;padding:15px}.score-stat strong{display:block;font-size:2rem;color:#5c3dc5}
+.result-icon{font-size:72px}.small{font-size:25px}
+#cameraStatus{cursor:pointer;border:0;color:#fff}
+footer{text-align:center;color:#ffffff9e;font-size:25px;padding:10px}
+@media(max-width:500px){main{padding:12px}.topbar{font-size:25px}.pill{padding:7px 9px}.answers{gap:9px}.answer{min-height:130px;padding:12px 6px}.answer .hand{font-size:34px}.rules-grid{gap:8px}.rule{padding:10px}.panel{border-radius:24px}}
+</style>
+</head>
+<body>
+<video id="camera" autoplay playsinline muted></video><div class="bg-grid"></div><div class="glow"></div><div class="glow two"></div>
+<main>
+ <div class="topbar">
+  <div class="pill"><span class="dot" id="statusDot"></span><span id="cameraStatus" title="เปิดกล้องเพื่อทดลอง AR">กล้อง: ยังไม่เปิด</span></div>
+  <div class="pill">🎓 สังคมศึกษา · ป.3</div>
+ </div>
+ <section id="start" class="screen active"><div class="panel">
+  <div class="emoji-hero">🧸💰</div><div class="tag">✨ เกมการเรียนรู้ AR ✨</div>
+  <h1>ประเภทภาษีน่ารู้</h1><p class="muted">ออกผจญภัยกับภาษีทางตรงและภาษีทางอ้อม<br>ตอบให้ถูกก่อนหมดเวลา แล้วสะสมคะแนนกันเลย!</p>
+  <div class="field"><label for="groupName">👥 ชื่อกลุ่มนักเรียน</label><input id="groupName" maxlength="40" placeholder="เช่น กลุ่มดาวเสาร์ หรือ กลุ่มที่ 1"></div>
+  <button class="btn primary full" id="startBtn">เริ่มเกมเลย 🚀</button>
+  <p class="small muted">มี 5 ข้อ · ข้อละ 20 วินาที · ตอบผิดได้ 3 ครั้ง ครั้งที่ 4 เกมจบ</p>
+ </div></section>
+ <section id="rules" class="screen"><div class="panel">
+  <div class="emoji-hero">🌟🙋</div><h2>กติกาการเล่น</h2>
+  <p class="muted">ตอบถูกแล้วจะไปข้อถัดไปอัตโนมัติ<br>ตอบผิดจะเปลี่ยนสถานการณ์และให้ลองใหม่ในข้อเดิม ตอบผิดได้ไม่เกิน 3 ครั้ง<br>สามารถคลิกคำตอบหรือเปิดกล้องเพื่อทดลองตรวจจับท่าทาง (ถ้าอุปกรณ์รองรับ)</p>
+  <div class="rules-grid">
+   <div class="rule"><div class="big">🙋‍♂️</div><strong>ภาษีทางตรง</strong><p class="small">เช่น ภาษีเงินได้บุคคลธรรมดา<br>เลือกปุ่มสีเขียว</p></div>
+   <div class="rule indirect"><div class="big">🙋‍♀️</div><strong>ภาษีทางอ้อม</strong><p class="small">เช่น ภาษีมูลค่าเพิ่ม (VAT)<br>เลือกปุ่มสีม่วง</p></div>
+  </div>
+  <button class="btn purple full" id="enterBtn">เข้าใจแล้ว ไปเล่นกัน! 🎮</button>
+ </div></section>
+ <section id="game" class="screen"><div class="game-wrap">
+  <div class="hud">
+   <div class="pill">👥 <span id="hudGroup">กลุ่มนักเรียน</span></div><div class="pill">ข้อ <span id="qNumber">1</span> / 5</div><div class="pill timer" id="timerBadge">⏱️ <span id="timer">20</span> วินาที</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="timeFill"></div></div>
+  <div class="question-card"><div class="q-label">🧩 สถานการณ์ที่ต้องคิด</div><div id="qEmoji" style="font-size:55px;margin-top:8px">👨‍💼</div><h2 id="q-text">คุณพ่อจ่ายภาษีเงินได้บุคคลธรรมดา</h2><div class="hint">🤔 คิดให้ดี! ภาษีนี้เป็นประเภทใด?</div><div class="feedback" id="feedback"></div></div>
+  <div class="answers">
+   <button class="answer direct" id="directBtn"><span class="hand">🙋‍♂️</span>ภาษีทางตรง<span class="sub">ยกมือขวา · คลิกที่นี่</span></button>
+   <button class="answer indirect" id="indirectBtn"><span class="hand">🙋‍♀️</span>ภาษีทางอ้อม<span class="sub">ยกมือซ้าย · คลิกที่นี่</span></button>
+  </div>
+  <p class="small" style="text-align:center;color:#ffffffc9">💡 ถ้าใช้กล้อง ให้กด “กล้อง: ยังไม่เปิด” ด้านบนเพื่ออนุญาตการใช้งาน</p>
+ </div></section>
+ <section id="summary" class="screen"><div class="panel">
+  <div class="result-icon" id="resultEmoji">🏆</div><div class="tag" id="resultTag">จบเกม</div><h1 id="resultTitle">สู้ ๆ นะ!</h1><p id="resultText" class="muted">สรุปผลการเล่น</p>
+  <div class="score-box"><div class="score-stat">คะแนน<strong id="finalScore">0 / 5</strong><span class="small">ข้อละ 1 คะแนน</span></div><div class="score-stat">เวลาที่ใช้<strong id="finalTime">00:00</strong><span class="small">นาที : วินาที</span></div></div>
+  <div id="failedReason" class="feedback bad show" style="text-align:center"></div>
+  <div style="background:#f8f6ff;border-radius:16px;padding:13px;margin:15px 0;text-align:left"><strong>📋 ผลการเล่น</strong><div id="resultDetails" class="small" style="margin-top:6px;line-height:1.8"></div></div>
+  <button class="btn purple full" id="restartBtn">🔄 เล่นอีกครั้ง</button>
+ </div></section>
+ <footer>เรียนรู้เรื่องภาษีอย่างสนุกสนาน · เกมสำหรับนักเรียนชั้นประถมศึกษาปีที่ 3</footer>
+</main>
+<script>
+const questions = [
+ {emoji:"👨‍💼💵",text:"คุณพ่อมีรายได้จากการทำงาน และจ่ายภาษีเงินได้บุคคลธรรมดา",answer:"direct",why:"ภาษีเงินได้บุคคลธรรมดาเป็นภาษีทางตรง เพราะผู้มีรายได้เป็นผู้มีหน้าที่เสียภาษีโดยตรง"},
+ {emoji:"🛍️🧃",text:"มะลิซื้อขนมที่ร้านค้า โดยราคาสินค้ามีภาษีมูลค่าเพิ่ม (VAT) รวมอยู่ด้วย",answer:"indirect",why:"ภาษีมูลค่าเพิ่ม (VAT) เป็นภาษีทางอ้อม ผู้ซื้อจ่ายภาษีผ่านราคาสินค้าหรือบริการ"},
+ {emoji:"🏠📄",text:"คุณลุงเป็นเจ้าของที่ดินและบ้าน และมีหน้าที่เสียภาษีที่ดินและสิ่งปลูกสร้าง",answer:"direct",why:"ภาษีที่ดินและสิ่งปลูกสร้างจัดเป็นภาษีทางตรง เพราะเรียกเก็บจากเจ้าของทรัพย์สินตามหลักเกณฑ์ที่กำหนด"},
+ {emoji:"📱🛒",text:"ต้นซื้อโทรศัพท์มือถือ และจ่ายภาษีมูลค่าเพิ่มที่รวมอยู่ในราคาสินค้า",answer:"indirect",why:"ภาษีมูลค่าเพิ่มเป็นภาษีทางอ้อม เพราะผู้ซื้อรับภาระภาษีผ่านการซื้อสินค้า"},
+ {emoji:"👩‍💻💰",text:"คุณแม่มีรายได้จากอาชีพ และยื่นชำระภาษีเงินได้บุคคลธรรมดา",answer:"direct",why:"ภาษีเงินได้บุคคลธรรมดาเป็นภาษีทางตรง โดยผู้มีเงินได้มีหน้าที่เสียภาษีตามกฎหมาย"},
+ {emoji:"🚗📑",text:"คุณลุงเป็นเจ้าของรถยนต์และชำระภาษีรถยนต์ประจำปี",answer:"direct",why:"ภาษีรถยนต์เป็นภาษีที่เรียกเก็บจากเจ้าของรถตามหลักเกณฑ์ที่กำหนด จัดเป็นภาษีทางตรงในกิจกรรมนี้"},
+ {emoji:"🍜🧾",text:"แพรวซื้อก๋วยเตี๋ยวและจ่ายราคาที่รวมภาษีมูลค่าเพิ่มแล้ว",answer:"indirect",why:"ภาษีมูลค่าเพิ่มเป็นภาษีทางอ้อม ผู้ซื้อรับภาระภาษีผ่านราคาสินค้าหรือบริการ"},
+ {emoji:"🏢💵",text:"บริษัทแห่งหนึ่งมีรายได้และต้องเสียภาษีเงินได้นิติบุคคล",answer:"direct",why:"ภาษีเงินได้นิติบุคคลเป็นภาษีทางตรง เรียกเก็บจากรายได้ของนิติบุคคล"},
+ {emoji:"👟🛍️",text:"นัทซื้อรองเท้าคู่ใหม่จากห้างสรรพสินค้า โดยมี VAT ในใบเสร็จ",answer:"indirect",why:"VAT หรือภาษีมูลค่าเพิ่มเป็นภาษีทางอ้อม ซึ่งผู้ซื้อจ่ายผ่านราคาสินค้า"},
+ {emoji:"🌳🏡",text:"คุณป้าเป็นเจ้าของที่ดินและได้รับแจ้งให้ชำระภาษีที่ดินและสิ่งปลูกสร้าง",answer:"direct",why:"ภาษีที่ดินและสิ่งปลูกสร้างเรียกเก็บจากเจ้าของทรัพย์สิน จัดเป็นภาษีทางตรง"},
+ {emoji:"🧴🛒",text:"บอยซื้อแชมพูจากร้านค้าและจ่ายภาษีมูลค่าเพิ่มที่รวมในราคา",answer:"indirect",why:"ภาษีมูลค่าเพิ่มเป็นภาษีทางอ้อม เพราะผู้ซื้อรับภาระผ่านราคาสินค้า"}
+];
+const $ = id => document.getElementById(id);
+let current=0, score=0, remaining=20, timerId=null, startAt=0, elapsedBefore=0, finished=false, cameraStream=null, pose=null, cameraRunning=false, poseBusy=false, wrongCount=0, usedQuestionIndexes=[];
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id))}
+function fmt(sec){sec=Math.max(0,Math.floor(sec));return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")}
+function elapsed(){return elapsedBefore+(startAt?Date.now()-startAt:0)}
+function stopTimer(){if(timerId){clearInterval(timerId);timerId=null}}
+function startGame(){const name=$("groupName").value.trim()||"กลุ่มนักเรียน";$("hudGroup").textContent=name;showScreen("rules")}
+function beginQuestions(){current=0;score=0;remaining=20;wrongCount=0;usedQuestionIndexes=[];finished=false;elapsedBefore=0;startAt=Date.now();showScreen("game");loadQuestion()}
+function pickQuestion(){let candidates=questions.map((q,i)=>i).filter(i=>i!==usedQuestionIndexes[usedQuestionIndexes.length-1]);if(!candidates.length)candidates=questions.map((q,i)=>i);const idx=candidates[Math.floor(Math.random()*candidates.length)];usedQuestionIndexes.push(idx);return questions[idx]}
+let activeQuestion=null;
+function loadQuestion(){stopTimer();if(finished)return;if(current>=5){finishGame("complete");return}remaining=20;activeQuestion=pickQuestion();$("qNumber").textContent=current+1;$("qEmoji").textContent=activeQuestion.emoji;$("q-text").textContent=activeQuestion.text;$("feedback").className="feedback";$("feedback").textContent="";$("timer").textContent=remaining;$("timeFill").style.width="100%";$("timerBadge").classList.remove("warning");$("directBtn").disabled=false;$("indirectBtn").disabled=false;timerId=setInterval(()=>{remaining--; $("timer").textContent=remaining;$("timeFill").style.width=(remaining/20*100)+"%";if(remaining<=5)$("timerBadge").classList.add("warning");if(remaining<=0){stopTimer();handleWrong("timeout")}},1000)}
+function answer(choice){if(finished||!timerId)return;stopTimer();$("directBtn").disabled=true;$("indirectBtn").disabled=true;if(choice===activeQuestion.answer){score++;const kind=choice==="direct"?"ภาษีทางตรง":"ภาษีทางอ้อม";$("feedback").className="feedback show";$("feedback").innerHTML="<strong>✅ ถูกต้อง! "+kind+"</strong><br>"+activeQuestion.why;setTimeout(()=>{if(!finished){current++;loadQuestion()}},1100)}else{handleWrong("wrong")}}
+function handleWrong(reason){if(finished)return;stopTimer();wrongCount++;$("directBtn").disabled=true;$("indirectBtn").disabled=true;if(wrongCount>3){finishGame(reason==="timeout"?"timeout":"wrong");return}const old=activeQuestion;const correct=old.answer==="direct"?"ภาษีทางตรง":"ภาษีทางอ้อม";$("feedback").className="feedback show bad";$("feedback").innerHTML="<strong>"+(reason==="timeout"?"⏰ หมดเวลา!":"❌ ยังไม่ถูก!")+"</strong><br>นับเป็นตอบผิด "+wrongCount+"/3 ครั้ง · เฉลย: "+correct+"<br>เปลี่ยนสถานการณ์ใหม่ในข้อเดิม ลองอีกครั้งนะ";setTimeout(()=>{if(!finished)loadQuestion()},1400)}
+function finishGame(reason){if(finished)return;finished=true;stopTimer();elapsedBefore=elapsed();startAt=0;showScreen("summary");$("finalScore").textContent=score+" / 5";$("finalTime").textContent=fmt(elapsedBefore/1000);const group=$("groupName").value.trim()||"กลุ่มนักเรียน";let title,emoji,tag,detail;if(reason==="complete"){title="เก่งมาก! 🎉";emoji="🏆";tag="ภารกิจสำเร็จ";detail="ตอบถูกครบทั้ง 5 ข้อ ยอดเยี่ยมมาก!"}else if(reason==="timeout"){title="หมดเวลาแล้ว! ⏰";emoji="⌛";tag="หมดเวลา";detail="หมดเวลาและตอบผิดเกิน 3 ครั้ง เกมจึงยุติ"}else{title="เกมจบแล้ว! 💪";emoji="🌈";tag="ตอบผิดเกิน 3 ครั้ง";detail="ตอบผิดครบ 4 ครั้ง เกมยุติแล้ว คำตอบของสถานการณ์ล่าสุดคือ "+(activeQuestion.answer==="direct"?"ภาษีทางตรง":"ภาษีทางอ้อม")+" ลองทบทวนแล้วเล่นใหม่นะ"}$("resultTitle").textContent=title;$("resultEmoji").textContent=emoji;$("resultTag").textContent=tag;$("resultText").textContent="กลุ่ม: "+group;$("failedReason").textContent=detail;$("resultDetails").innerHTML="กลุ่ม: <strong>"+escapeHtml(group)+"</strong><br>ตอบถูก: <strong>"+score+" ข้อ</strong><br>ตอบผิด/หมดเวลา: <strong>"+wrongCount+" ครั้ง</strong><br>สถานะ: <strong>"+(reason==="complete"?"เล่นครบ 5 ข้อ":reason==="timeout"?"หมดเวลาและครบจำนวนครั้งที่กำหนด":"ตอบผิดเกิน 3 ครั้ง")+"</strong><br>เวลารวม: <strong>"+fmt(elapsedBefore/1000)+"</strong>";}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function toggleCamera(){if(cameraStream){stopCamera();return}try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});$("camera").srcObject=cameraStream;cameraRunning=true;$("cameraStatus").textContent="กล้อง: เปิดแล้ว";$("statusDot").style.background="#35d5ad";if("Pose" in window){initPose()}else{$("cameraStatus").textContent="กล้องเปิดแล้ว · ไม่มีระบบตรวจจับท่าทาง"}}catch(e){$("cameraStatus").textContent="เปิดกล้องไม่ได้ · คลิกเพื่อลองใหม่";$("statusDot").style.background="#ff6b86";alert("ไม่สามารถเปิดกล้องได้ โปรดอนุญาตการใช้กล้องและเปิดเกมผ่าน HTTPS หรือ localhost แล้วลองอีกครั้ง")}}
+function stopCamera(){if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;cameraRunning=false;if(pose){try{pose.close()}catch(e){}pose=null} $("camera").srcObject=null;$("cameraStatus").textContent="กล้อง: ยังไม่เปิด";$("statusDot").style.background="#ffc64c"}
+function initPose(){if(!window.Pose||!cameraRunning)return;try{pose=new Pose({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});pose.setOptions({modelComplexity:0,smoothLandmarks:true,minDetectionConfidence:.55,minTrackingConfidence:.55});pose.onResults(results=>{if(!cameraRunning||poseBusy||!timerId||finished||!results.poseLandmarks)return;const l=results.poseLandmarks;const lw=l[15],rw=l[16],ls=l[11],rs=l[12];if(!lw||!rw||!ls||!rs)return;const leftUp=lw.y<ls.y-.08,rightUp=rw.y<rs.y-.08;if(rightUp&&!leftUp){poseBusy=true;answer("direct");setTimeout(()=>poseBusy=false,1800)}else if(leftUp&&!rightUp){poseBusy=true;answer("indirect");setTimeout(()=>poseBusy=false,1800)}});const send=async()=>{if(!cameraRunning||!pose)return;try{await pose.send({image:$("camera")})}catch(e){}if(cameraRunning)requestAnimationFrame(send)};send()}catch(e){$("cameraStatus").textContent="กล้องเปิดแล้ว · ตรวจจับท่าทางไม่พร้อม"}}
+$("startBtn").addEventListener("click",startGame);$("enterBtn").addEventListener("click",beginQuestions);$("directBtn").addEventListener("click",()=>answer("direct"));$("indirectBtn").addEventListener("click",()=>answer("indirect"));$("restartBtn").addEventListener("click",()=>{showScreen("start");stopTimer();finished=false;current=0;score=0;wrongCount=0;usedQuestionIndexes=[]});$("cameraStatus").addEventListener("click",toggleCamera);
+</script>
+</body>
+</html>
